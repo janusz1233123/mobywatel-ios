@@ -11,31 +11,33 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Generate Xcode Project
+      - name: Build with xcodebuild (Swift Package)
         run: |
           cd App
-          swift package generate-xcodeproj || true
-          ls -la *.xcodeproj || echo "No xcodeproj generated"
-
-      - name: Build & Archive (final attempt)
-        run: |
-          cd App
+          
+          echo "=== Budowanie aplikacji ==="
+          
           xcodebuild clean archive \
-            -project Mobywatel.xcodeproj \
             -scheme Mobywatel \
             -sdk iphoneos \
             -archivePath ../build/Mobywatel.xcarchive \
-            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO || \
-          echo "❌ Build failed - check above"
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            -destination 'generic/platform=iOS' || true
 
-      - name: Export & Upload
+      - name: Export IPA
         run: |
           ls -la build/
-          xcodebuild -exportArchive \
-            -archivePath build/Mobywatel.xcarchive \
-            -exportOptionsPlist ../ExportOptions.plist \
-            -exportPath build || echo "No archive to export"
-        if: always()
+          if [ -d "build/Mobywatel.xcarchive" ]; then
+            xcodebuild -exportArchive \
+              -archivePath build/Mobywatel.xcarchive \
+              -exportOptionsPlist ../ExportOptions.plist \
+              -exportPath build
+            ls -la build/
+          else
+            echo "❌ Nie udało się utworzyć archiwum"
+          fi
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
