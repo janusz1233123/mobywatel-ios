@@ -11,38 +11,36 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Generate Xcode Project
+      - name: Build App using SwiftPM
         run: |
           cd App
-          swift package generate-xcodeproj || true
-
-      - name: List Schemes
-        run: |
-          cd App
-          echo "=== Dostępne schematy ==="
-          xcodebuild -list -project *.xcodeproj || echo "Nie ma xcodeproj"
-
-      - name: Build & Archive
-        run: |
-          cd App
-          echo "=== Rozpoczynam budowanie ==="
+          
+          echo "=== Budowanie aplikacji ==="
+          
+          # Budujemy bezpośrednio
           xcodebuild clean archive \
-            -project Mobywatel.xcodeproj \
+            -workspace . \
             -scheme "Mobywatel" \
             -sdk iphoneos \
             -archivePath ../build/Mobywatel.xcarchive \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO || echo "❌ BŁĄD BUDOWANIA - zobacz logi powyżej"
-          
-          ls -la ../build/
+            CODE_SIGNING_ALLOWED=NO || \
+          xcodebuild clean archive \
+            -workspace . \
+            -scheme "App" \
+            -sdk iphoneos \
+            -archivePath ../build/Mobywatel.xcarchive \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
 
       - name: Export IPA
         run: |
           ls -la build/
           xcodebuild -exportArchive \
             -archivePath build/Mobywatel.xcarchive \
-            -exportOptionsPlist ../ExportOptions.plist \
+            -exportOptionsPlist ExportOptions.plist \
             -exportPath build || echo "Export nieudany"
 
       - name: Upload IPA
