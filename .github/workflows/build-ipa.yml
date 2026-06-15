@@ -11,26 +11,32 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Generate Xcode Project
+      - name: Debug - Generate Project & List Schemes
         run: |
           cd App
-          swift package generate-xcodeproj || true
-          echo "=== Schematy ==="
-          xcodebuild -list -project *.xcodeproj
+          swift package generate-xcodeproj --xcconfig-overrides .xcodebuild.xcconfig || true
+          
+          echo "=== Pliki w App ==="
+          ls -la
+          
+          echo "=== Dostępne schematy ==="
+          xcodebuild -list -project *.xcodeproj || echo "Nie znaleziono xcodeproj"
 
-      - name: Build & Archive
+      - name: Archive (próbujemy różne nazwy schematów)
         run: |
           cd App
           
-          xcodebuild clean archive \
-            -project Mobywatel.xcodeproj \
-            -scheme "Mobywatel" \
-            -sdk iphoneos \
-            -archivePath ../build/Mobywatel.xcarchive \
-            -configuration Release \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
+          for scheme in "Mobywatel" "Mobywatel-Package" "App"; do
+            echo "Próbuję schemat: $scheme"
+            xcodebuild clean archive \
+              -project Mobywatel.xcodeproj \
+              -scheme "$scheme" \
+              -sdk iphoneos \
+              -archivePath ../build/Mobywatel.xcarchive \
+              CODE_SIGN_IDENTITY="" \
+              CODE_SIGNING_REQUIRED=NO \
+              CODE_SIGNING_ALLOWED=NO && echo "Sukces ze schematem: $scheme" && break
+          done
 
       - name: Export IPA
         run: |
