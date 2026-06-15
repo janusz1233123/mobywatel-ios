@@ -11,20 +11,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Debug + Generate + Build
+      - name: Generate Xcode Project
         run: |
           cd App
-          
-          echo "=== Generowanie projektu ==="
-          swift package generate-xcodeproj --xcconfig-overrides .xcodebuild.xcconfig || true
-          
-          echo "=== Pliki ==="
-          ls -la
-          
-          echo "=== Schematy ==="
-          xcodebuild -list -project *.xcodeproj || echo "Brak projektu"
-          
-          echo "=== Próba builda ==="
+          swift package generate-xcodeproj || true
+
+      - name: Build & Archive
+        run: |
+          cd App
+          echo "=== Buduję aplikację ==="
           xcodebuild clean archive \
             -project Mobywatel.xcodeproj \
             -scheme "Mobywatel" \
@@ -33,17 +28,20 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            -quiet || echo "Nie zadziałało z Mobywatel"
+            | xcpretty || cat
 
       - name: Export IPA
         run: |
+          ls -la build/
           if [ -d "build/Mobywatel.xcarchive" ]; then
+            echo "Archiwum istnieje - eksportuję .ipa"
             xcodebuild -exportArchive \
               -archivePath build/Mobywatel.xcarchive \
-              -exportOptionsPlist ExportOptions.plist \
+              -exportOptionsPlist ../ExportOptions.plist \
               -exportPath build
+            ls -la build/
           else
-            echo "Nie ma archiwum - budowanie nie powiodło się"
+            echo "❌ Brak xcarchive!"
           fi
 
       - name: Upload IPA
