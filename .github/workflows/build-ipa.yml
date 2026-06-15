@@ -1,7 +1,7 @@
 name: Build Mobywatel IPA
 
 on:
-  workflow_dispatch:  # ręczne uruchomienie
+  workflow_dispatch:
 
 jobs:
   build:
@@ -11,31 +11,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Select Xcode
-        run: |
-          sudo xcode-select -s /Applications/Xcode_16.app  # lub nowszy
-
-      - name: Build and Archive
+      - name: Build with Swift
         run: |
           cd App
-          
-          # Budujemy jako Swift Package + Xcode
-          xcodebuild clean archive \
-            -project App.xcodeproj \
-            -scheme "App" \
-            -sdk iphoneos \
-            -archivePath ../build/Mobywatel.xcarchive \
-            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+          swift build --configuration release
 
-      - name: Export IPA
+      - name: Info
         run: |
-          xcodebuild -exportArchive \
-            -archivePath build/Mobywatel.xcarchive \
-            -exportOptionsPlist ExportOptions.plist \
-            -exportPath build
-
-      - name: Upload IPA
-        uses: actions/upload-artifact@v4
-        with:
-          name: Mobywatel-IPA
-          path: build/*.ipa
+          echo "Projekt jest pusty - nie ma jeszcze aplikacji do zbudowania na .ipa"
+          echo "Potrzebujesz pełnego kodu aplikacji (z plikami .swift w Sources/App itd.)"
