@@ -11,21 +11,32 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Generate Xcode Project
+      - name: Generate Xcode Project & Show Schemes
         run: |
           cd App
-          swift package generate-xcodeproj --xcconfig-overrides .xcodebuild.xcconfig || true
-          echo "=== Dostępne projekty i schematy ==="
-          ls -la *.xcodeproj
-          xcodebuild -list -project *.xcodeproj || true
+          swift package generate-xcodeproj || true
+          
+          echo "=== Pliki w folderze App ==="
+          ls -la
+          
+          echo "=== Dostępne schematy ==="
+          xcodebuild -list -project *.xcodeproj || echo "Brak xcodeproj"
 
-      - name: Archive
+      - name: Archive App
         run: |
           cd App
           
           xcodebuild clean archive \
             -project Mobywatel.xcodeproj \
             -scheme "Mobywatel" \
+            -sdk iphoneos \
+            -archivePath ../build/Mobywatel.xcarchive \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO || \
+          xcodebuild clean archive \
+            -project Mobywatel.xcodeproj \
+            -scheme "Mobywatel-Package" \
             -sdk iphoneos \
             -archivePath ../build/Mobywatel.xcarchive \
             CODE_SIGN_IDENTITY="" \
