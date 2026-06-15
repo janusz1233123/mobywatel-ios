@@ -11,15 +11,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Show project structure
+      - name: Build IPA
         run: |
-          ls -la
-          echo "=== App folder ==="
-          ls -la App
-          echo "=== Package.swift ==="
-          cat App/Package.swift
+          cd App
+          
+          xcodebuild clean archive \
+            -project App.xcodeproj \
+            -scheme Mobywatel \
+            -sdk iphoneos \
+            -archivePath ../build/Mobywatel.xcarchive \
+            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
 
-      - name: Result
+      - name: Export IPA
         run: |
-          echo "❌ Projekt jest pusty - nie da się zbudować .ipa"
-          echo "Potrzebujesz pełnego kodu aplikacji (pliki .swift z widokami, Info.plist itd.)"
+          xcodebuild -exportArchive \
+            -archivePath build/Mobywatel.xcarchive \
+            -exportOptionsPlist ../ExportOptions.plist \
+            -exportPath build
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mobywatel-IPA
+          path: build/*.ipa
