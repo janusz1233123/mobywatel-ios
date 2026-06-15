@@ -11,15 +11,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build IPA
+      - name: Generate Xcode project
         run: |
           cd App
-          
+          swift package generate-xcodeproj
+
+      - name: Build and Archive
+        run: |
+          cd App
           xcodebuild clean archive \
-            -project App.xcodeproj \
-            -scheme Mobywatel \
+            -project Mobywatel.xcodeproj \
+            -scheme Mobywatel-Package \
             -sdk iphoneos \
-            -archivePath ../build/Mobywatel.xcarchive \
+            -archivePath ../../build/Mobywatel.xcarchive \
             CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
 
       - name: Export IPA
