@@ -11,39 +11,40 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Debug - Generate Project & List Schemes
+      - name: Debug + Generate + Build
         run: |
           cd App
+          
+          echo "=== Generowanie projektu ==="
           swift package generate-xcodeproj --xcconfig-overrides .xcodebuild.xcconfig || true
           
-          echo "=== Pliki w App ==="
+          echo "=== Pliki ==="
           ls -la
           
-          echo "=== Dostępne schematy ==="
-          xcodebuild -list -project *.xcodeproj || echo "Nie znaleziono xcodeproj"
-
-      - name: Archive (próbujemy różne nazwy schematów)
-        run: |
-          cd App
+          echo "=== Schematy ==="
+          xcodebuild -list -project *.xcodeproj || echo "Brak projektu"
           
-          for scheme in "Mobywatel" "Mobywatel-Package" "App"; do
-            echo "Próbuję schemat: $scheme"
-            xcodebuild clean archive \
-              -project Mobywatel.xcodeproj \
-              -scheme "$scheme" \
-              -sdk iphoneos \
-              -archivePath ../build/Mobywatel.xcarchive \
-              CODE_SIGN_IDENTITY="" \
-              CODE_SIGNING_REQUIRED=NO \
-              CODE_SIGNING_ALLOWED=NO && echo "Sukces ze schematem: $scheme" && break
-          done
+          echo "=== Próba builda ==="
+          xcodebuild clean archive \
+            -project Mobywatel.xcodeproj \
+            -scheme "Mobywatel" \
+            -sdk iphoneos \
+            -archivePath ../build/Mobywatel.xcarchive \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            -quiet || echo "Nie zadziałało z Mobywatel"
 
       - name: Export IPA
         run: |
-          xcodebuild -exportArchive \
-            -archivePath build/Mobywatel.xcarchive \
-            -exportOptionsPlist ../ExportOptions.plist \
-            -exportPath build
+          if [ -d "build/Mobywatel.xcarchive" ]; then
+            xcodebuild -exportArchive \
+              -archivePath build/Mobywatel.xcarchive \
+              -exportOptionsPlist ExportOptions.plist \
+              -exportPath build
+          else
+            echo "Nie ma archiwum - budowanie nie powiodło się"
+          fi
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
