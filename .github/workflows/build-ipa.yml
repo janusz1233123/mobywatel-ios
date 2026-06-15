@@ -11,12 +11,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build with Swift
+      - name: Show project structure
         run: |
-          cd App
-          swift build --configuration release
+          ls -la
+          echo "=== App folder ==="
+          ls -la App
+          echo "=== Package.swift ==="
+          cat App/Package.swift
 
-      - name: Info
+      - name: Result
         run: |
-          echo "Projekt jest pusty - nie ma jeszcze aplikacji do zbudowania na .ipa"
-          echo "Potrzebujesz pełnego kodu aplikacji (z plikami .swift w Sources/App itd.)"
+          echo "❌ Projekt jest pusty - nie da się zbudować .ipa"
+          echo "Potrzebujesz pełnego kodu aplikacji (pliki .swift z widokami, Info.plist itd.)"
