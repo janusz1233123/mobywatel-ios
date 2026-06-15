@@ -1,0 +1,41 @@
+name: Build Mobywatel IPA
+
+on:
+  workflow_dispatch:  # ręczne uruchomienie
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          sudo xcode-select -s /Applications/Xcode_16.app  # lub nowszy
+
+      - name: Build and Archive
+        run: |
+          cd App
+          
+          # Budujemy jako Swift Package + Xcode
+          xcodebuild clean archive \
+            -project App.xcodeproj \
+            -scheme "App" \
+            -sdk iphoneos \
+            -archivePath ../build/Mobywatel.xcarchive \
+            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+
+      - name: Export IPA
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath build/Mobywatel.xcarchive \
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath build
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mobywatel-IPA
+          path: build/*.ipa
