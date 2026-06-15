@@ -11,20 +11,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Generate Xcode Project + Build
+      - name: Generate Xcode Project
+        run: |
+          cd App
+          swift package generate-xcodeproj --xcconfig-overrides .xcodebuild.xcconfig || true
+          echo "=== Dostępne projekty i schematy ==="
+          ls -la *.xcodeproj
+          xcodebuild -list -project *.xcodeproj || true
+
+      - name: Archive
         run: |
           cd App
           
-          # Generujemy projekt
-          swift package generate-xcodeproj || true
-          
-          echo "=== Dostępne schematy ==="
-          xcodebuild -list -project *.xcodeproj
-          
-          # Budujemy
           xcodebuild clean archive \
             -project Mobywatel.xcodeproj \
-            -scheme "Mobywatel-Package" \
+            -scheme "Mobywatel" \
             -sdk iphoneos \
             -archivePath ../build/Mobywatel.xcarchive \
             CODE_SIGN_IDENTITY="" \
@@ -35,7 +36,7 @@ jobs:
         run: |
           xcodebuild -exportArchive \
             -archivePath build/Mobywatel.xcarchive \
-            -exportOptionsPlist ExportOptions.plist \
+            -exportOptionsPlist ../ExportOptions.plist \
             -exportPath build
 
       - name: Upload IPA
