@@ -16,10 +16,16 @@ jobs:
           cd App
           swift package generate-xcodeproj || true
 
+      - name: List Schemes
+        run: |
+          cd App
+          echo "=== Dostępne schematy ==="
+          xcodebuild -list -project *.xcodeproj || echo "Nie ma xcodeproj"
+
       - name: Build & Archive
         run: |
           cd App
-          echo "=== Buduję aplikację ==="
+          echo "=== Rozpoczynam budowanie ==="
           xcodebuild clean archive \
             -project Mobywatel.xcodeproj \
             -scheme "Mobywatel" \
@@ -27,22 +33,17 @@ jobs:
             -archivePath ../build/Mobywatel.xcarchive \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            | xcpretty || cat
+            CODE_SIGNING_ALLOWED=NO || echo "❌ BŁĄD BUDOWANIA - zobacz logi powyżej"
+          
+          ls -la ../build/
 
       - name: Export IPA
         run: |
           ls -la build/
-          if [ -d "build/Mobywatel.xcarchive" ]; then
-            echo "Archiwum istnieje - eksportuję .ipa"
-            xcodebuild -exportArchive \
-              -archivePath build/Mobywatel.xcarchive \
-              -exportOptionsPlist ../ExportOptions.plist \
-              -exportPath build
-            ls -la build/
-          else
-            echo "❌ Brak xcarchive!"
-          fi
+          xcodebuild -exportArchive \
+            -archivePath build/Mobywatel.xcarchive \
+            -exportOptionsPlist ../ExportOptions.plist \
+            -exportPath build || echo "Export nieudany"
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
