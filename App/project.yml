@@ -1,0 +1,14 @@
+name: Mobywatel
+options:
+  bundleIdPrefix: pl.gov.mobywatel.test
+  deploymentTarget:
+    iOS: "17.0"
+
+targets:
+  Mobywatel:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: pl.gov.mobywatel.test
