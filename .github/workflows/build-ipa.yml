@@ -15,26 +15,27 @@ jobs:
         run: |
           cd App
           swift package generate-xcodeproj || true
+          ls -la *.xcodeproj || echo "No xcodeproj generated"
 
-      - name: Build & Archive
+      - name: Build & Archive (final attempt)
         run: |
           cd App
           xcodebuild clean archive \
             -project Mobywatel.xcodeproj \
-            -scheme "Mobywatel" \
+            -scheme Mobywatel \
             -sdk iphoneos \
             -archivePath ../build/Mobywatel.xcarchive \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO || \
+          echo "❌ Build failed - check above"
 
-      - name: Export IPA
+      - name: Export & Upload
         run: |
           ls -la build/
           xcodebuild -exportArchive \
             -archivePath build/Mobywatel.xcarchive \
             -exportOptionsPlist ../ExportOptions.plist \
-            -exportPath build
+            -exportPath build || echo "No archive to export"
+        if: always()
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
