@@ -11,33 +11,33 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build with xcodebuild (Swift Package)
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project with XcodeGen
         run: |
           cd App
-          
-          echo "=== Budowanie aplikacji ==="
-          
+          xcodegen generate
+
+      - name: Build & Archive
+        run: |
+          cd App
           xcodebuild clean archive \
+            -project Mobywatel.xcodeproj \
             -scheme Mobywatel \
             -sdk iphoneos \
             -archivePath ../build/Mobywatel.xcarchive \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            -destination 'generic/platform=iOS' || true
+            CODE_SIGNING_ALLOWED=NO
 
       - name: Export IPA
         run: |
           ls -la build/
-          if [ -d "build/Mobywatel.xcarchive" ]; then
-            xcodebuild -exportArchive \
-              -archivePath build/Mobywatel.xcarchive \
-              -exportOptionsPlist ../ExportOptions.plist \
-              -exportPath build
-            ls -la build/
-          else
-            echo "❌ Nie udało się utworzyć archiwum"
-          fi
+          xcodebuild -exportArchive \
+            -archivePath build/Mobywatel.xcarchive \
+            -exportOptionsPlist ../ExportOptions.plist \
+            -exportPath build
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
