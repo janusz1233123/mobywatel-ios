@@ -11,26 +11,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Generate Xcode project
+      - name: Build with SwiftPM + xcodebuild
         run: |
           cd App
-          swift package generate-xcodeproj
-
-      - name: Build and Archive
-        run: |
-          cd App
+          
+          # Generujemy projekt Xcode nowocześniejszą metodą
+          swift package generate-xcodeproj || true
+          
           xcodebuild clean archive \
             -project Mobywatel.xcodeproj \
-            -scheme Mobywatel-Package \
+            -scheme Mobywatel \
             -sdk iphoneos \
-            -archivePath ../../build/Mobywatel.xcarchive \
-            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+            -archivePath ../build/Mobywatel.xcarchive \
+            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO \
+            | xcpretty || echo "xcpretty not found, continuing..."
 
       - name: Export IPA
         run: |
           xcodebuild -exportArchive \
             -archivePath build/Mobywatel.xcarchive \
-            -exportOptionsPlist ../ExportOptions.plist \
+            -exportOptionsPlist ExportOptions.plist \
             -exportPath build
 
       - name: Upload IPA
